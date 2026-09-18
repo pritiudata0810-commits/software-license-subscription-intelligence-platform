@@ -1,0 +1,455 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum SoftwareStatus {
+  ACTIVE
+  UNDER_REVIEW
+  DISCONTINUED
+}
+
+enum LicenseStatus {
+  ACTIVE
+  EXPIRING_SOON
+  EXPIRED
+  TERMINATED
+}
+
+enum LicenseType {
+  PER_USER
+  ENTERPRISE
+  FLOATING
+  PER_CORE
+}
+
+enum BillingFrequency {
+  MONTHLY
+  ANNUAL
+  ONE_TIME
+}
+
+enum AssignmentStatus {
+  ACTIVE
+  REVOKED
+}
+
+enum UtilizationStatus {
+  HIGH
+  MODERATE
+  LOW
+  INACTIVE
+}
+
+enum RequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  FULFILLED_EXISTING
+}
+
+enum ApprovalDecision {
+  APPROVED
+  REJECTED
+}
+
+enum ApprovalAction {
+  ASSIGNED_EXISTING
+  PURCHASE_AUTHORIZED
+  REJECTED_NO_BUDGET
+  REJECTED_DUPLICATE
+}
+
+enum RenewalStatus {
+  UPCOMING
+  DUE_7_DAYS
+  DUE_30_DAYS
+  EXPIRED
+  RENEWED
+  CANCELLED
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RecommendationType {
+  REALLOCATE_UNUSED
+  USE_EXISTING_LICENSE
+  PRE_RENEWAL_REVIEW
+  COST_OPTIMIZATION
+  DUPLICATE_CONSOLIDATION
+}
+
+enum RecommendationSeverity {
+  CRITICAL
+  WARNING
+  INFO
+}
+
+enum RecommendationStatus {
+  NEW
+  REVIEWED
+  ACCEPTED
+  DISMISSED
+  COMPLETED
+}
+
+enum AlertSeverity {
+  CRITICAL
+  WARNING
+  INFO
+}
+
+enum AuditAction {
+  LOGIN
+  LOGOUT
+  CREATE
+  UPDATE
+  DELETE
+  ASSIGN_LICENSE
+  REVOKE_LICENSE
+  REQUEST_SUBMITTED
+  APPROVE_REQUEST
+  REJECT_REQUEST
+  GENERATE_RECOMMENDATION
+  UPDATE_RENEWAL
+}
+
+model User {
+  id              String           @id @default(cuid())
+  email           String           @unique
+  name            String
+  passwordHash    String
+  role            Role             @default(EMPLOYEE)
+  designation     String?
+  avatarUrl       String?
+  status          UserStatus       @default(ACTIVE)
+  departmentId    String?
+  department      Department?      @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  
+  assignments     LicenseAssignment[]
+  usageRecords    UsageRecord[]
+  softwareRequests SoftwareRequest[]
+  approvedRequests RequestApproval[] @relation("ApproverUser")
+  auditLogs       AuditLog[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([email])
+  @@index([role])
+  @@index([departmentId])
+  @@map("users")
+}
+
+model Department {
+  id              String           @id @default(cuid())
+  name            String           @unique
+  code            String           @unique
+  budgetMonthly   Float            @default(0)
+  
+  users           User[]
+  assignments     LicenseAssignment[]
+  costRecords     CostRecord[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@map("departments")
+}
+
+model Vendor {
+  id              String           @id @default(cuid())
+  name            String           @unique
+  contactPerson   String?
+  email           String?
+  phone           String?
+  website         String?
+  notes           String?
+  
+  software        Software[]
+  licenses        License[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@map("vendors")
+}
+
+model Software {
+  id              String           @id @default(cuid())
+  name            String           @unique
+  category        String           // Productivity, Design, Development, Cloud, Analytics, Security, Collaboration
+  description     String?
+  version         String?
+  website         String?
+  status          SoftwareStatus   @default(ACTIVE)
+  
+  vendorId        String
+  vendor          Vendor           @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  
+  licenses        License[]
+  usageRecords    UsageRecord[]
+  softwareRequests SoftwareRequest[]
+  renewals        Renewal[]
+  costRecords     CostRecord[]
+  recommendations Recommendation[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([category])
+  @@index([vendorId])
+  @@map("software")
+}
+
+model License {
+  id               String           @id @default(cuid())
+  softwareId       String
+  software         Software         @relation(fields: [softwareId], references: [id], onDelete: Cascade)
+  vendorId         String?
+  vendor           Vendor?          @relation(fields: [vendorId], references: [id], onDelete: SetNull)
+  
+  licenseKey       String?
+  licenseType      LicenseType      @default(PER_USER)
+  totalQuantity    Int              @default(1)
+  costPerLicense   Float            @default(0) // In INR (₹) per month
+  billingFrequency BillingFrequency @default(MONTHLY)
+  
+  purchaseDate     DateTime         @default(now())
+  startDate        DateTime         @default(now())
+  renewalDate      DateTime
+  expiryDate       DateTime?
+  status           LicenseStatus    @default(ACTIVE)
+  notes            String?
+
+  assignments      LicenseAssignment[]
+  usageRecords     UsageRecord[]
+  renewals         Renewal[]
+  recommendations  Recommendation[]
+
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([softwareId])
+  @@index([status])
+  @@index([renewalDate])
+  @@map("licenses")
+}
+
+model LicenseAssignment {
+  id           String           @id @default(cuid())
+  licenseId    String
+  license      License          @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  userId       String
+  user         User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  departmentId String?
+  department   Department?      @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  
+  assignedDate DateTime         @default(now())
+  status       AssignmentStatus @default(ACTIVE)
+  notes        String?
+
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+
+  @@unique([licenseId, userId, status])
+  @@index([licenseId])
+  @@index([userId])
+  @@index([departmentId])
+  @@map("license_assignments")
+}
+
+model UsageRecord {
+  id                String            @id @default(cuid())
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  softwareId        String
+  software          Software          @relation(fields: [softwareId], references: [id], onDelete: Cascade)
+  licenseId         String?
+  license           License?          @relation(fields: [licenseId], references: [id], onDelete: SetNull)
+  
+  lastActiveDate    DateTime          @default(now())
+  loginCount        Int               @default(0)
+  hoursUsed         Float             @default(0)
+  utilizationStatus UtilizationStatus @default(MODERATE)
+  
+  recordedAt        DateTime          @default(now())
+
+  @@index([userId])
+  @@index([softwareId])
+  @@index([recordedAt])
+  @@map("usage_records")
+}
+
+model SoftwareRequest {
+  id           String          @id @default(cuid())
+  userId       String
+  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  softwareId   String
+  software     Software        @relation(fields: [softwareId], references: [id], onDelete: Cascade)
+  
+  priority     RequestPriority @default(MEDIUM)
+  reason       String
+  requiredDate DateTime?
+  status       RequestStatus   @default(PENDING)
+  comments     String?
+  
+  approvals    RequestApproval[]
+
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@index([userId])
+  @@index([softwareId])
+  @@index([status])
+  @@map("software_requests")
+}
+
+model RequestApproval {
+  id           String           @id @default(cuid())
+  requestId    String
+  request      SoftwareRequest  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  approvedById String
+  approvedBy   User             @relation("ApproverUser", fields: [approvedById], references: [id], onDelete: Cascade)
+  
+  decision     ApprovalDecision
+  actionTaken  ApprovalAction
+  comments     String?
+  decidedAt    DateTime         @default(now())
+
+  @@index([requestId])
+  @@index([approvedById])
+  @@map("request_approvals")
+}
+
+model Renewal {
+  id            String        @id @default(cuid())
+  licenseId     String
+  license       License       @relation(fields: [licenseId], references: [id], onDelete: Cascade)
+  softwareId    String
+  software      Software      @relation(fields: [softwareId], references: [id], onDelete: Cascade)
+  
+  renewalDate   DateTime
+  estimatedCost Float         @default(0)
+  status        RenewalStatus @default(UPCOMING)
+  riskLevel     RiskLevel     @default(LOW)
+  autoRenew     Boolean       @default(false)
+  notes         String?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([licenseId])
+  @@index([softwareId])
+  @@index([renewalDate])
+  @@index([status])
+  @@map("renewals")
+}
+
+model CostRecord {
+  id            String      @id @default(cuid())
+  softwareId    String
+  software      Software    @relation(fields: [softwareId], references: [id], onDelete: Cascade)
+  departmentId  String?
+  department    Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  
+  month         Int         // 1 to 12
+  year          Int         // e.g. 2026
+  allocatedCost Float       @default(0)
+  wastedCost    Float       @default(0)
+  calculatedAt  DateTime    @default(now())
+
+  @@index([softwareId])
+  @@index([departmentId])
+  @@index([year, month])
+  @@map("cost_records")
+}
+
+model Recommendation {
+  id                     String                 @id @default(cuid())
+  softwareId             String
+  software               Software               @relation(fields: [softwareId], references: [id], onDelete: Cascade)
+  licenseId              String?
+  license                License?               @relation(fields: [licenseId], references: [id], onDelete: SetNull)
+  
+  type                   RecommendationType
+  severity               RecommendationSeverity @default(INFO)
+  title                  String
+  reason                 String
+  supportingMetrics      Json?                  // e.g. { "totalLicenses": 50, "unused": 15, "utilizationRate": 70 }
+  estimatedMonthlySavings Float                 @default(0)
+  estimatedAnnualSavings  Float                 @default(0)
+  suggestedAction        String
+  status                 RecommendationStatus   @default(NEW)
+
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+
+  @@index([softwareId])
+  @@index([type])
+  @@index([status])
+  @@map("recommendations")
+}
+
+model Alert {
+  id         String        @id @default(cuid())
+  severity   AlertSeverity @default(INFO)
+  title      String
+  message    String
+  entityType String        // LICENSE, RENEWAL, REQUEST, COST, SYSTEM
+  entityId   String?
+  isRead     Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+
+  @@index([severity])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("alerts")
+}
+
+model AuditLog {
+  id        String      @id @default(cuid())
+  userId    String?
+  user      User?       @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    AuditAction
+  entity    String      // User, Software, License, Assignment, Request, Renewal, Recommendation
+  entityId  String?
+  details   Json?
+  ipAddress String?
+  createdAt DateTime    @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
