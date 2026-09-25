@@ -41,3 +41,6 @@ __pycache__/
 *$py.class
 venv/
 .venv/
+
+.vercel
+.env*
