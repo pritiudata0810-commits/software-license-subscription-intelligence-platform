@@ -121,7 +121,7 @@ export default function Sidebar() {
             </div>
             <div className="flex flex-col">
               <span className="font-bold text-white tracking-wide text-sm leading-tight">LicenseIQ</span>
-              <span className="text-[10px] text-sky-400 font-medium tracking-wider uppercase">FEP Intelligence</span>
+              <span className="text-[10px] text-sky-400 font-medium tracking-wider uppercase">Enterprise Intelligence</span>
             </div>
           </div>
         )}

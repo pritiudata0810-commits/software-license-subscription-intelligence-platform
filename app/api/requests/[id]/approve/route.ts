@@ -73,16 +73,26 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
           finalAction = ApprovalAction.ASSIGNED_EXISTING;
           assignedLicenseId = selectedLicense.id;
 
-          // Create assignment
-          await tx.licenseAssignment.create({
-            data: {
+          // Create assignment if not already active
+          const existingAssignment = await tx.licenseAssignment.findFirst({
+            where: {
               licenseId: selectedLicense.id,
               userId: request.userId,
-              departmentId: request.user.departmentId,
               status: AssignmentStatus.ACTIVE,
-              notes: `Fulfillment of software request #${request.id}`,
             },
           });
+
+          if (!existingAssignment) {
+            await tx.licenseAssignment.create({
+              data: {
+                licenseId: selectedLicense.id,
+                userId: request.userId,
+                departmentId: request.user.departmentId,
+                status: AssignmentStatus.ACTIVE,
+                notes: `Fulfillment of software request #${request.id}`,
+              },
+            });
+          }
 
           // Create usage record
           await tx.usageRecord.create({

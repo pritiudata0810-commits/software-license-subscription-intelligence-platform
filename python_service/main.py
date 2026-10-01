@@ -13,7 +13,7 @@ import numpy as np
 from datetime import datetime
 
 app = FastAPI(
-    title="FEP License Intelligence & Analytics API",
+    title="LicenseIQ Intelligence & Analytics API",
     description="Vectorized analytics, explainable health scores, and rule-based recommendation engine powered by Pandas, NumPy and FastAPI.",
     version="1.0.0"
 )
@@ -59,12 +59,11 @@ class RecommendationRequest(BaseModel):
 @app.get("/")
 def read_root():
     return {
-        "service": "License Intelligence & Analytics API",
+        "service": "LicenseIQ Intelligence & Analytics Microservice",
         "status": "online",
         "framework": "FastAPI",
         "analytics_engine": f"Pandas {pd.__version__}, NumPy {np.__version__}",
-        "department": "Computer Engineering - Field Engineering Project (FEP)",
-        "team": ["Yamgar Shreyasi", "Shaikh Alfiya", "Sonawane Shrawani", "Jadhav Suraj", "Udata Priti"]
+        "edition": "Enterprise"
     }
 
 @app.post("/api/analytics/utilization")

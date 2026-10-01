@@ -116,6 +116,49 @@ async function main() {
     },
   ];
 
+  const additionalEmployees = [
+    { name: 'Rohan Sharma', email: 'rohan.sharma@enterprise.com', designation: 'Backend Engineer', dept: 'ENG' },
+    { name: 'Ananya Iyer', email: 'ananya.iyer@enterprise.com', designation: 'UI/UX Designer', dept: 'DES' },
+    { name: 'Vikram Malhotra', email: 'vikram.malhotra@enterprise.com', designation: 'Cloud Architect', dept: 'OPS' },
+    { name: 'Sneha Kulkarni', email: 'sneha.kulkarni@enterprise.com', designation: 'QA Specialist', dept: 'QA' },
+    { name: 'Kavita Nair', email: 'kavita.nair@enterprise.com', designation: 'Content Strategist', dept: 'MKT' },
+    { name: 'Arjun Reddy', email: 'arjun.reddy@enterprise.com', designation: 'Fullstack Developer', dept: 'ENG' },
+    { name: 'Meera Deshmukh', email: 'meera.deshmukh@enterprise.com', designation: 'Visual Designer', dept: 'DES' },
+    { name: 'Karan Mehta', email: 'karan.mehta@enterprise.com', designation: 'DevOps Engineer', dept: 'OPS' },
+    { name: 'Pooja Joshi', email: 'pooja.joshi@enterprise.com', designation: 'Test Engineer', dept: 'QA' },
+    { name: 'Aditya Roy', email: 'aditya.roy@enterprise.com', designation: 'Growth Specialist', dept: 'MKT' },
+    { name: 'Tanvi Shah', email: 'tanvi.shah@enterprise.com', designation: 'Data Engineer', dept: 'ENG' },
+    { name: 'Siddharth Rao', email: 'siddharth.rao@enterprise.com', designation: 'Graphic Designer', dept: 'DES' },
+    { name: 'Neha Gupta', email: 'neha.gupta@enterprise.com', designation: 'Site Reliability Engineer', dept: 'OPS' },
+    { name: 'Deepak Patil', email: 'deepak.patil@enterprise.com', designation: 'SDET QA', dept: 'QA' },
+    { name: 'Simran Kaur', email: 'simran.kaur@enterprise.com', designation: 'Digital Marketer', dept: 'MKT' },
+    { name: 'Nikhil Bose', email: 'nikhil.bose@enterprise.com', designation: 'Mobile App Engineer', dept: 'ENG' },
+    { name: 'Riya Sen', email: 'riya.sen@enterprise.com', designation: 'Illustrator & Motion', dept: 'DES' },
+    { name: 'Gaurav Dubey', email: 'gaurav.dubey@enterprise.com', designation: 'Security Engineer', dept: 'OPS' },
+    { name: 'Monika Chawla', email: 'monika.chawla@enterprise.com', designation: 'Performance Tester', dept: 'QA' },
+    { name: 'Varun Bhat', email: 'varun.bhat@enterprise.com', designation: 'SEO Specialist', dept: 'MKT' },
+    { name: 'Isha Saxena', email: 'isha.saxena@enterprise.com', designation: 'Systems Programmer', dept: 'ENG' },
+    { name: 'Kunal Singhania', email: 'kunal.singhania@enterprise.com', designation: 'Interaction Designer', dept: 'DES' },
+    { name: 'Shalini Menon', email: 'shalini.menon@enterprise.com', designation: 'Infrastructure Engineer', dept: 'OPS' },
+    { name: 'Tarun Varma', email: 'tarun.varma@enterprise.com', designation: 'Automation Tester', dept: 'QA' },
+    { name: 'Zoya Farooqui', email: 'zoya.farooqui@enterprise.com', designation: 'Social Media Lead', dept: 'MKT' },
+    { name: 'Manish Tiwari', email: 'manish.tiwari@enterprise.com', designation: 'Software Engineer', dept: 'ENG' },
+    { name: 'Natasha Fernandez', email: 'natasha.f@enterprise.com', designation: 'Brand Designer', dept: 'DES' },
+    { name: 'Harsh Vardhan', email: 'harsh.v@enterprise.com', designation: 'Kubernetes Admin', dept: 'OPS' },
+    { name: 'Preeti Jain', email: 'preeti.jain@enterprise.com', designation: 'Regression Tester', dept: 'QA' },
+    { name: 'Rahul Nambiar', email: 'rahul.n@enterprise.com', designation: 'Campaign Manager', dept: 'MKT' },
+  ];
+
+  for (const emp of additionalEmployees) {
+    usersData.push({
+      name: emp.name,
+      email: emp.email,
+      role: Role.EMPLOYEE,
+      designation: emp.designation,
+      departmentId: departments[emp.dept].id,
+    });
+  }
+
   const users: Record<string, any> = {};
   for (const u of usersData) {
     const created = await prisma.user.create({

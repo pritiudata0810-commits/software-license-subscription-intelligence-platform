@@ -44,48 +44,39 @@ export default function SettingsPage() {
         </div>
       )}
 
-      {/* Card 1: Field Engineering Project (FEP) Academic Accreditation */}
+      {/* Card 1: Enterprise Platform Information */}
       <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4">
         <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100">
-          <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
             <Award className="w-4 h-4" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-slate-900">Academic Project Accreditation</h2>
-            <p className="text-[11px] text-slate-500">Field Engineering Project (FEP) • Computer Engineering</p>
+            <h2 className="text-sm font-bold text-slate-900">Platform & Architecture Overview</h2>
+            <p className="text-[11px] text-slate-500">LicenseIQ Enterprise Subscription & License Intelligence</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-            <span className="font-bold text-slate-800 block mb-1">Project Guide</span>
-            <span className="text-slate-600">Mr. Ajit Chavan</span>
+            <span className="font-bold text-slate-800 block mb-1">Platform Edition</span>
+            <span className="text-slate-600">LicenseIQ Enterprise v1.0</span>
           </div>
 
           <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
-            <span className="font-bold text-slate-800 block mb-1">Department</span>
-            <span className="text-slate-600">Department of Computer Engineering</span>
+            <span className="font-bold text-slate-800 block mb-1">Database Engine</span>
+            <span className="text-slate-600">PostgreSQL (Prisma ORM)</span>
           </div>
-        </div>
 
-        <div className="pt-2">
-          <span className="text-xs font-bold text-slate-800 block mb-2">Project Team Members:</span>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 text-xs">
-            {[
-              { name: 'Yamgar Shreyasi', role: 'Person 1: Core Mgmt & Auth' },
-              { name: 'Shaikh Alfiya', role: 'Person 2: Usage & Cost Analytics' },
-              { name: 'Sonawane Shrawani', role: 'Person 3: AI Intelligence & Health' },
-              { name: 'Jadhav Suraj', role: 'Person 4: Renewal & Risk Alerts' },
-              { name: 'Udata Priti', role: 'Person 5: Dashboard & Reporting' },
-            ].map((member, i) => (
-              <div key={i} className="p-3 rounded-2xl bg-blue-50/50 border border-blue-100/80">
-                <div className="font-bold text-slate-900">{member.name}</div>
-                <div className="text-[10px] text-blue-600 font-medium mt-0.5">{member.role}</div>
-              </div>
-            ))}
+          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+            <span className="font-bold text-slate-800 block mb-1">Security & Auth</span>
+            <span className="text-slate-600">JWT + Multi-Role RBAC</span>
+          </div>
+
+          <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100">
+            <span className="font-bold text-slate-800 block mb-1">Analytics Engine</span>
+            <span className="text-slate-600">FastAPI Intelligence Service</span>
           </div>
         </div>
-      </div>
 
       {/* Card 2: Database & Production Environment Status */}
       <div className="p-6 rounded-3xl bg-white border border-slate-200/80 shadow-sm space-y-4">
