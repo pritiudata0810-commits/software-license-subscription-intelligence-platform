@@ -1,22 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
-import {
-  ShieldCheck,
-  Lock,
-  Mail,
-  ArrowRight,
-  Eye,
-  EyeOff,
-  AlertCircle,
-  Sparkles,
-  Layers,
-  TrendingUp,
-  KeyRound,
-  CheckCircle2
-} from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, ShieldCheck, Check } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,13 +11,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
+  const [keepLoggedIn, setKeepLoggedIn] = useState(true);
   const [selectedRole, setSelectedRole] = useState<'ADMIN' | 'MANAGER' | 'EMPLOYEE' | null>(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   // If already authenticated, redirect to dashboard
-  React.useEffect(() => {
+  useEffect(() => {
     if (user) {
       router.push('/dashboard');
     }
@@ -65,9 +52,8 @@ export default function LoginPage() {
 
   /**
    * Handle Role Selection Chip Click:
-   * STRICT REQUIREMENT: Clicking a role button MUST NOT automatically authenticate the user!
-   * It only populates the demo credentials into the form so the user can review them,
-   * keeping the user in control until they manually click "Sign In".
+   * STRICT MANDATE: Populates credentials for review only.
+   * DOES NOT automatically submit or redirect.
    */
   const handleSelectRole = (role: 'ADMIN' | 'MANAGER' | 'EMPLOYEE') => {
     setSelectedRole(role);
@@ -86,271 +72,229 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#140D2E] text-white flex items-center justify-center p-4 sm:p-6 lg:p-12 relative overflow-hidden select-none">
-      {/* Ambient background glows inspired by modern SaaS aesthetic */}
-      <div className="absolute -top-40 -left-40 w-[550px] h-[550px] bg-gradient-to-tr from-purple-700/25 to-indigo-600/20 rounded-full blur-[140px] pointer-events-none" />
-      <div className="absolute -bottom-40 -right-40 w-[600px] h-[600px] bg-gradient-to-br from-violet-600/25 to-blue-700/20 rounded-full blur-[160px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/3 -translate-y-1/2 w-[350px] h-[350px] bg-sky-500/10 rounded-full blur-[120px] pointer-events-none" />
+    <div className="min-h-screen bg-white text-slate-800 flex items-center justify-center p-4 sm:p-8 lg:p-12 relative overflow-hidden select-none">
+      
+      {/* ============================================================== */}
+      {/* FLOATING ORGANIC SHAPES & DOT MATRIX (from media_1791173942245.png) */}
+      {/* ============================================================== */}
 
-      {/* Main Container: Two-column layout matching reference media_1790783815398 */}
-      <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center relative z-10">
+      {/* Top right coral crescent/semicircle */}
+      <div className="absolute -top-12 right-24 w-64 h-36 bg-[#FF8C68] rounded-b-full opacity-90 pointer-events-none transform -rotate-6" />
+
+      {/* Top center lavender/periwinkle curved shape */}
+      <div className="absolute -top-16 left-1/2 -translate-x-12 w-64 h-64 bg-gradient-to-br from-[#B5A4E8] to-[#9B89D8] rounded-full opacity-80 blur-[1px] pointer-events-none" />
+
+      {/* Top right subtle background glow */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-[#FFEFEA] rounded-full blur-[80px] -z-10 pointer-events-none" />
+
+      {/* Far right purple semicircle */}
+      <div className="absolute top-16 -right-16 w-52 h-52 bg-gradient-to-l from-[#C6B6F5] to-[#B09CE6] rounded-full pointer-events-none hidden md:block" />
+
+      {/* Dot matrix grid on the right (matching media_1791173942245.png) */}
+      <div className="absolute top-1/3 right-20 hidden lg:grid grid-cols-8 gap-3 opacity-30 pointer-events-none">
+        {Array.from({ length: 48 }).map((_, i) => (
+          <div key={i} className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+        ))}
+      </div>
+
+      {/* Bottom center-right soft red vertical pebble/shield */}
+      <div className="absolute -bottom-10 left-1/2 -translate-x-20 w-44 h-64 bg-gradient-to-t from-[#FF4D4D] to-[#FF7060] rounded-[60px] opacity-90 blur-[0.5px] pointer-events-none shadow-2xl shadow-red-500/20" />
+
+      {/* Bottom right bright cyan semicircle */}
+      <div className="absolute bottom-6 right-1/4 w-56 h-28 bg-[#62D0DF] rounded-t-full pointer-events-none transform -rotate-12" />
+
+      {/* Bottom far right lavender rounded triangle/pebble */}
+      <div className="absolute bottom-12 right-12 w-48 h-40 bg-[#C3B5F5] rounded-[36px] pointer-events-none transform rotate-12 hidden md:block" />
+
+      {/* Bottom left soft pastel glow */}
+      <div className="absolute bottom-0 left-1/3 w-80 h-80 bg-rose-100/40 rounded-full blur-[100px] pointer-events-none" />
+
+      {/* ============================================================== */}
+      {/* MAIN TWO-COLUMN CONTENT GRID */}
+      {/* ============================================================== */}
+      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center relative z-10">
         
-        {/* Left Column: Enterprise Branding & Intelligence Highlights */}
-        <div className="lg:col-span-6 flex flex-col justify-center space-y-8 px-2 sm:px-4">
+        {/* LEFT COLUMN: LOGIN CARD & FORM */}
+        <div className="lg:col-span-5 flex flex-col justify-center max-w-md mx-auto w-full">
           
-          {/* Brand Logo & Name */}
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-indigo-500 via-purple-500 to-sky-400 p-0.5 shadow-xl shadow-indigo-500/30 flex items-center justify-center">
-                <div className="w-full h-full bg-[#140D2E]/90 rounded-[14px] flex items-center justify-center">
-                  <ShieldCheck className="w-6 h-6 text-sky-400" />
-                </div>
-              </div>
-              <div>
-                <div className="flex items-center gap-1.5">
-                  <h1 className="text-3xl font-extrabold tracking-tight text-white">LicenseIQ</h1>
-                  <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
-                    Enterprise
-                  </span>
-                </div>
+          {/* Brand Logo & Heading */}
+          <div className="flex flex-col items-center mb-6 text-center">
+            {/* Gradient Logo "L." matching reference "C." mark */}
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-[#9B51E0] via-[#BB6BD9] to-[#56CCF2] p-1 shadow-md mb-4 flex items-center justify-center">
+              <div className="w-full h-full bg-white rounded-xl flex items-center justify-center">
+                <span className="text-2xl font-black bg-gradient-to-r from-[#8E44AD] to-[#6C5CE7] bg-clip-text text-transparent">
+                  L.
+                </span>
               </div>
             </div>
-
-            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-100 leading-snug">
-              Software License & Subscription Intelligence Platform
-            </h2>
-
-            <p className="text-sm text-slate-300/90 leading-relaxed font-normal">
-              A unified platform to centralize software assets, eliminate redundant subscriptions,
-              monitor real-time seat utilization, and predict renewal costs with precision.
+            
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
+              Login
+            </h1>
+            <p className="text-xs text-slate-500 mt-1 font-medium">
+              Welcome to LicenseIQ. Enter your corporate credentials below.
             </p>
           </div>
 
-          {/* Core Intelligence Capability Pills */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-            <div className="p-3.5 rounded-2xl bg-white/[0.05] border border-white/10 backdrop-blur-md transition hover:bg-white/[0.08]">
-              <div className="flex items-center gap-2 text-indigo-300 font-semibold text-xs mb-1">
-                <Layers className="w-4 h-4 text-sky-400" />
-                <span>Centralized</span>
-              </div>
-              <p className="text-[11px] text-slate-400 leading-tight">
-                Single source of truth for software & vendor contracts.
-              </p>
+          {/* Quick Role Fill Chips (Populate only, NO auto-submit) */}
+          <div className="mb-5 bg-[#F8FAFC] border border-slate-200/80 rounded-2xl p-3">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                Preset Demo Accounts
+              </span>
+              <span className="text-[10px] text-slate-400 font-medium">Click to fill</span>
             </div>
-
-            <div className="p-3.5 rounded-2xl bg-white/[0.05] border border-white/10 backdrop-blur-md transition hover:bg-white/[0.08]">
-              <div className="flex items-center gap-2 text-emerald-300 font-semibold text-xs mb-1">
-                <TrendingUp className="w-4 h-4 text-emerald-400" />
-                <span>Zero Waste</span>
-              </div>
-              <p className="text-[11px] text-slate-400 leading-tight">
-                Identifies unused seats & provides immediate reallocation.
-              </p>
-            </div>
-
-            <div className="p-3.5 rounded-2xl bg-white/[0.05] border border-white/10 backdrop-blur-md transition hover:bg-white/[0.08]">
-              <div className="flex items-center gap-2 text-purple-300 font-semibold text-xs mb-1">
-                <Sparkles className="w-4 h-4 text-purple-400" />
-                <span>Health Score</span>
-              </div>
-              <p className="text-[11px] text-slate-400 leading-tight">
-                0-100 composite index for subscription efficiency.
-              </p>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => handleSelectRole('ADMIN')}
+                className={`py-2 px-2.5 rounded-xl text-xs font-semibold transition border flex items-center justify-center gap-1.5 ${
+                  selectedRole === 'ADMIN'
+                    ? 'bg-[#6C5CE7] text-white border-[#6C5CE7] shadow-sm'
+                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                {selectedRole === 'ADMIN' && <Check className="w-3 h-3" />}
+                Admin
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSelectRole('MANAGER')}
+                className={`py-2 px-2.5 rounded-xl text-xs font-semibold transition border flex items-center justify-center gap-1.5 ${
+                  selectedRole === 'MANAGER'
+                    ? 'bg-[#6C5CE7] text-white border-[#6C5CE7] shadow-sm'
+                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                {selectedRole === 'MANAGER' && <Check className="w-3 h-3" />}
+                Manager
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSelectRole('EMPLOYEE')}
+                className={`py-2 px-2.5 rounded-xl text-xs font-semibold transition border flex items-center justify-center gap-1.5 ${
+                  selectedRole === 'EMPLOYEE'
+                    ? 'bg-[#6C5CE7] text-white border-[#6C5CE7] shadow-sm'
+                    : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                {selectedRole === 'EMPLOYEE' && <Check className="w-3 h-3" />}
+                Employee
+              </button>
             </div>
           </div>
 
-          {/* Quick Action Info Badges */}
-          <div className="flex flex-wrap items-center gap-3 pt-2">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/10 text-xs text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span>Multi-Tenant Architecture</span>
+          {/* Error Message */}
+          {error && (
+            <div className="mb-4 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2 animate-in fade-in">
+              <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+              <span>{error}</span>
             </div>
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/[0.06] border border-white/10 text-xs text-slate-300">
-              <KeyRound className="w-3.5 h-3.5 text-indigo-400" />
-              <span>Role-Based Access Control (RBAC)</span>
+          )}
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Email Field */}
+            <div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Email"
+                required
+                className="w-full px-4 py-3.5 rounded-2xl bg-[#F4F5F7] border border-transparent focus:border-slate-300 focus:bg-white text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#6C5CE7]/20 transition"
+              />
             </div>
+
+            {/* Password Field */}
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Password"
+                required
+                className="w-full px-4 py-3.5 pr-12 rounded-2xl bg-[#F4F5F7] border border-transparent focus:border-slate-300 focus:bg-white text-slate-800 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-[#6C5CE7]/20 transition"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+
+            {/* Keep logged in & Forgot password row */}
+            <div className="flex items-center justify-between text-xs pt-1">
+              <label className="flex items-center gap-2 cursor-pointer text-slate-600 select-none">
+                <input
+                  type="checkbox"
+                  checked={keepLoggedIn}
+                  onChange={(e) => setKeepLoggedIn(e.target.checked)}
+                  className="w-4 h-4 rounded text-[#6C5CE7] focus:ring-[#6C5CE7] border-slate-300 cursor-pointer"
+                />
+                <span>Keep me logged in</span>
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setError('Contact your IT administrator at support@enterprise.com for password resets.')}
+                className="text-xs font-semibold text-[#6C5CE7] hover:underline"
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            {/* Submit Button matching media_1791173942245.png */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-2 py-3.5 rounded-2xl bg-[#6C5CE7] hover:bg-[#5B4BC4] active:scale-[0.99] text-white font-bold text-sm shadow-xl shadow-[#6C5CE7]/25 transition duration-150 flex items-center justify-center gap-2 disabled:opacity-60"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Signing In...</span>
+                </>
+              ) : (
+                <span>Sign In</span>
+              )}
+            </button>
+          </form>
+
+          {/* Footer note */}
+          <div className="mt-8 text-center text-xs text-slate-400">
+            <span>Single-tenant corporate deployment • </span>
+            <span className="font-semibold text-slate-600">LicenseIQ Security</span>
           </div>
+
         </div>
 
-        {/* Right Column: Clean, Frosted Glass Enterprise Login Card */}
-        <div className="lg:col-span-6 flex justify-center">
-          <div className="w-full max-w-md bg-white/[0.06] backdrop-blur-2xl rounded-3xl p-7 sm:p-9 border border-white/15 shadow-2xl shadow-purple-950/50 relative">
-            
-            {/* Form Header */}
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-white tracking-tight">Log In to LicenseIQ</h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Enter your credentials or select a role preset below to test.
-              </p>
-            </div>
+        {/* RIGHT COLUMN: HERO TYPOGRAPHY & MOTIF (from media_1791173942245.png) */}
+        <div className="lg:col-span-7 hidden lg:flex flex-col justify-center items-center lg:items-start pl-4 xl:pl-12 relative">
+          
+          {/* Coral pebble shape behind typography */}
+          <div className="absolute -left-4 top-1/2 -translate-y-8 w-28 h-14 bg-[#FF8C68] rounded-full opacity-90 transform -rotate-12 pointer-events-none" />
 
-            {/* Role Preset Selector Chips: Populates credentials for manual review, DOES NOT auto-login */}
-            <div className="mb-5">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  Select Role Preset (Demo)
-                </span>
-                <span className="text-[10px] text-slate-500">Requires manual Sign In</span>
-              </div>
-              <div className="grid grid-cols-3 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleSelectRole('ADMIN')}
-                  className={`py-2 px-2.5 rounded-xl border text-left transition-all ${
-                    selectedRole === 'ADMIN'
-                      ? 'bg-indigo-600/30 border-indigo-400 text-white shadow-sm shadow-indigo-500/20'
-                      : 'bg-white/[0.04] border-white/10 text-slate-300 hover:bg-white/[0.08] hover:border-white/20'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold">Admin</span>
-                    {selectedRole === 'ADMIN' && <CheckCircle2 className="w-3 h-3 text-indigo-400" />}
-                  </div>
-                  <span className="text-[10px] text-slate-400 block truncate">Full System</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleSelectRole('MANAGER')}
-                  className={`py-2 px-2.5 rounded-xl border text-left transition-all ${
-                    selectedRole === 'MANAGER'
-                      ? 'bg-emerald-600/30 border-emerald-400 text-white shadow-sm shadow-emerald-500/20'
-                      : 'bg-white/[0.04] border-white/10 text-slate-300 hover:bg-white/[0.08] hover:border-white/20'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold">Manager</span>
-                    {selectedRole === 'MANAGER' && <CheckCircle2 className="w-3 h-3 text-emerald-400" />}
-                  </div>
-                  <span className="text-[10px] text-slate-400 block truncate">Approvals</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleSelectRole('EMPLOYEE')}
-                  className={`py-2 px-2.5 rounded-xl border text-left transition-all ${
-                    selectedRole === 'EMPLOYEE'
-                      ? 'bg-sky-600/30 border-sky-400 text-white shadow-sm shadow-sky-500/20'
-                      : 'bg-white/[0.04] border-white/10 text-slate-300 hover:bg-white/[0.08] hover:border-white/20'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold">Employee</span>
-                    {selectedRole === 'EMPLOYEE' && <CheckCircle2 className="w-3 h-3 text-sky-400" />}
-                  </div>
-                  <span className="text-[10px] text-slate-400 block truncate">My Licenses</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Error Message Alert */}
-            {error && (
-              <div className="mb-4 p-3 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-200 text-xs flex items-start gap-2.5 animate-in fade-in">
-                <AlertCircle className="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5" />
-                <div className="flex-1">{error}</div>
-              </div>
-            )}
-
-            {/* Standard Login Form */}
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1.5">
-                  Your Corporate Email
-                </label>
-                <div className="relative">
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setSelectedRole(null);
-                    }}
-                    placeholder="name@enterprise.com"
-                    className="w-full pl-10 pr-3.5 py-2.5 text-xs rounded-xl bg-white/[0.07] border border-white/15 focus:outline-none focus:ring-2 focus:ring-sky-400/40 focus:border-sky-400 transition text-white placeholder-slate-500"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-medium text-slate-300 block mb-1.5">
-                  Your Password
-                </label>
-                <div className="relative">
-                  <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    required
-                    value={password}
-                    onChange={(e) => {
-                      setPassword(e.target.value);
-                      setSelectedRole(null);
-                    }}
-                    placeholder="••••••••••••"
-                    className="w-full pl-10 pr-10 py-2.5 text-xs rounded-xl bg-white/[0.07] border border-white/15 focus:outline-none focus:ring-2 focus:ring-sky-400/40 focus:border-sky-400 transition text-white placeholder-slate-500"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition p-1"
-                    title={showPassword ? 'Hide password' : 'Show password'}
-                  >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-              </div>
-
-              {/* Remember me & Forgot password */}
-              <div className="flex items-center justify-between text-xs pt-1">
-                <label className="flex items-center gap-2 cursor-pointer text-slate-300">
-                  <input
-                    type="checkbox"
-                    checked={rememberMe}
-                    onChange={(e) => setRememberMe(e.target.checked)}
-                    className="w-3.5 h-3.5 rounded bg-white/10 border-white/20 text-sky-500 focus:ring-sky-400 focus:ring-offset-0 focus:ring-1"
-                  />
-                  <span>Remember me</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => alert('Demo Reset: Passwords for seeded users are default Password@123')}
-                  className="text-sky-400 hover:text-sky-300 transition hover:underline"
-                >
-                  Forgot password?
-                </button>
-              </div>
-
-              {/* Submit Button: Prominent cyan/teal or gradient button matching visual reference */}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-2 py-3 rounded-xl bg-gradient-to-r from-sky-400 via-cyan-400 to-indigo-500 hover:from-sky-300 hover:to-indigo-400 text-slate-950 font-bold text-xs tracking-wide transition shadow-lg shadow-cyan-500/25 flex items-center justify-center gap-2 disabled:opacity-60 cursor-pointer"
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2 text-slate-900">
-                    <span className="w-3.5 h-3.5 border-2 border-slate-900 border-t-transparent rounded-full animate-spin" />
-                    Authenticating credentials...
-                  </span>
-                ) : (
-                  <>
-                    <span>Sign In</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
-            </form>
-
-            {/* Subtle Enterprise Footer */}
-            <div className="mt-6 pt-4 border-t border-white/10 text-center">
-              <p className="text-[11px] text-slate-400">
-                Protected by Enterprise Role-Based Access & JWT Security
-              </p>
+          {/* Hero Typography matching reference exactly */}
+          <div className="relative z-10 max-w-lg">
+            <h2 className="text-4xl xl:text-5xl font-black text-slate-900 tracking-tight leading-[1.15]">
+              Changing the way <br />
+              organizations optimize <br />
+              software subscriptions
+            </h2>
+            <div className="mt-4 flex items-center gap-2 text-slate-400 font-semibold tracking-wide text-sm">
+              <span className="w-8 h-0.5 bg-[#6C5CE7]" />
+              <span>LicenseIQ Intelligence Engine</span>
             </div>
           </div>
+
         </div>
 
       </div>
+
     </div>
   );
 }
