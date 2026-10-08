@@ -28,6 +28,7 @@ export default function LicensesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
 
   const [formData, setFormData] = useState({
     softwareId: '',
@@ -170,18 +171,41 @@ export default function LicensesPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2">
-          <Filter className="w-3.5 h-3.5 text-slate-400" />
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-          >
-            <option value="">All Statuses</option>
-            <option value="ACTIVE">Active</option>
-            <option value="EXPIRING_SOON">Expiring Soon</option>
-            <option value="EXPIRED">Expired</option>
-          </select>
+        <div className="flex items-center gap-2.5 w-full md:w-auto overflow-x-auto justify-between md:justify-end">
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setViewMode('monthly')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${
+                viewMode === 'monthly' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('yearly')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${
+                viewMode === 'yearly' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Yearly
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Filter className="w-3.5 h-3.5 text-slate-400" />
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            >
+              <option value="">All Statuses</option>
+              <option value="ACTIVE">Active</option>
+              <option value="EXPIRING_SOON">Expiring Soon</option>
+              <option value="EXPIRED">Expired</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -193,73 +217,106 @@ export default function LicensesPage() {
               <tr>
                 <th className="py-3.5 px-4">Software Product</th>
                 <th className="py-3.5 px-4">Type</th>
-                <th className="py-3.5 px-4">Total Seats</th>
-                <th className="py-3.5 px-4">Active</th>
-                <th className="py-3.5 px-4">Available (Unused)</th>
+                <th className="py-3.5 px-4">Total Quota</th>
+                <th className="py-3.5 px-4">Active / Used</th>
+                <th className="py-3.5 px-4">Available / Remaining</th>
                 <th className="py-3.5 px-4">Utilization</th>
-                <th className="py-3.5 px-4">Cost / Seat</th>
+                <th className="py-3.5 px-4">{viewMode === 'yearly' ? 'Annual Cost' : 'Cost / Unit'}</th>
                 <th className="py-3.5 px-4">Renewal Date</th>
                 <th className="py-3.5 px-4">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {filteredLicenses.length > 0 ? (
-                filteredLicenses.map((lic) => (
-                  <tr key={lic.id} className="hover:bg-slate-50/70 transition">
-                    <td className="py-3 px-4">
-                      <div className="font-bold text-slate-900">{lic.software?.name}</div>
-                      <div className="text-[10px] text-slate-400">{lic.software?.category}</div>
-                    </td>
-                    <td className="py-3 px-4 font-medium text-slate-600">
-                      {lic.licenseType.replace('_', ' ')}
-                    </td>
-                    <td className="py-3 px-4 font-bold text-slate-900">
-                      {lic.totalQuantity}
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-blue-600">
-                      {lic.assignedQuantity}
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-emerald-600">
-                      {lic.availableQuantity}
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${
-                              lic.utilizationRate >= 75
-                                ? 'bg-emerald-500'
-                                : lic.utilizationRate >= 50
-                                ? 'bg-blue-600'
-                                : 'bg-rose-500'
-                            }`}
-                            style={{ width: `${Math.min(100, lic.utilizationRate)}%` }}
-                          />
+                filteredLicenses.map((lic) => {
+                  const isToken = lic.consumptionType === 'TOKEN_BASED';
+                  const displayCost = viewMode === 'yearly'
+                    ? (lic.annualExpenditure || lic.monthlyExpenditure * 12)
+                    : (isToken ? (lic.monthlyExpenditure || 100000) : lic.costPerLicense);
+
+                  return (
+                    <tr key={lic.id} className="hover:bg-slate-50/70 transition">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-slate-900">{lic.software?.name}</span>
+                          {isToken && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#E3DCFD] text-purple-800 border border-purple-200 uppercase tracking-wider">
+                              Token
+                            </span>
+                          )}
                         </div>
-                        <span className="font-bold text-slate-800">{lic.utilizationRate}%</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4 font-semibold text-slate-800">
-                      {formatINR(lic.costPerLicense)}/mo
-                    </td>
-                    <td className="py-3 px-4 text-slate-600">
-                      {new Date(lic.renewalDate).toLocaleDateString()}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                          lic.status === 'ACTIVE'
-                            ? 'bg-emerald-100 text-emerald-700'
-                            : lic.status === 'EXPIRING_SOON'
-                            ? 'bg-amber-100 text-amber-700'
-                            : 'bg-rose-100 text-rose-700'
-                        }`}
-                      >
-                        {lic.status.replace('_', ' ')}
-                      </span>
-                    </td>
-                  </tr>
-                ))
+                        <div className="text-[10px] text-slate-400">{lic.software?.category}</div>
+                      </td>
+                      <td className="py-3 px-4 font-medium text-slate-600">
+                        {isToken ? (
+                          <span className="text-purple-700 font-semibold">CONSUMPTION</span>
+                        ) : (
+                          lic.licenseType.replace('_', ' ')
+                        )}
+                      </td>
+                      <td className="py-3 px-4 font-bold text-slate-900">
+                        {isToken ? (
+                          <span>{((lic.allocatedTokens || 0) / 1_000_000).toFixed(1)}M Tokens</span>
+                        ) : (
+                          <span>{lic.totalQuantity} Seats</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-blue-600">
+                        {isToken ? (
+                          <span>{((lic.usedTokens || 0) / 1_000_000).toFixed(1)}M</span>
+                        ) : (
+                          <span>{lic.assignedQuantity}</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-emerald-600">
+                        {isToken ? (
+                          <span>{((lic.remainingTokens || 0) / 1_000_000).toFixed(1)}M</span>
+                        ) : (
+                          <span>{lic.availableQuantity}</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${
+                                lic.utilizationRate >= 75
+                                  ? 'bg-emerald-500'
+                                  : lic.utilizationRate >= 50
+                                  ? 'bg-blue-600'
+                                  : 'bg-rose-500'
+                              }`}
+                              style={{ width: `${Math.min(100, lic.utilizationRate)}%` }}
+                            />
+                          </div>
+                          <span className="font-bold text-slate-800">{lic.utilizationRate}%</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 font-semibold text-slate-800">
+                        <div>{formatINR(displayCost)}{viewMode === 'yearly' ? '/yr' : '/mo'}</div>
+                        {isToken && viewMode === 'monthly' && (
+                          <div className="text-[10px] text-slate-400">@ ₹{lic.tokenUnitCost || 0.002}/token</div>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-slate-600">
+                        {new Date(lic.renewalDate).toLocaleDateString()}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                            lic.status === 'ACTIVE'
+                              ? 'bg-emerald-100 text-emerald-700'
+                              : lic.status === 'EXPIRING_SOON'
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-rose-100 text-rose-700'
+                          }`}
+                        >
+                          {lic.status.replace('_', ' ')}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td colSpan={9} className="py-10 text-center text-slate-400">

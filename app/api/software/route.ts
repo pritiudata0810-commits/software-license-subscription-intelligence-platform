@@ -54,19 +54,38 @@ export async function GET(req: NextRequest) {
       let activeAssignments = 0;
       let monthlyCost = 0;
       let costPerLicense = 0;
+      let allocatedTokens = 0;
+      let usedTokens = 0;
+      let tokenUnitCost = 0;
 
       for (const lic of sw.licenses) {
-        totalLicenses += lic.totalQuantity;
-        activeAssignments += lic.assignments.length;
-        monthlyCost += lic.totalQuantity * lic.costPerLicense;
-        costPerLicense = lic.costPerLicense;
+        if (sw.consumptionType === 'TOKEN_BASED' || lic.consumptionType === 'TOKEN_BASED') {
+          allocatedTokens += lic.allocatedTokens || 0;
+          usedTokens += lic.usedTokens || 0;
+          tokenUnitCost = lic.tokenUnitCost || 0;
+          monthlyCost += lic.allocatedTokens ? (lic.allocatedTokens * (lic.tokenUnitCost || 0)) : (lic.totalQuantity * lic.costPerLicense);
+          costPerLicense = lic.costPerLicense || (lic.tokenUnitCost ? lic.tokenUnitCost * 1000 : 0);
+          activeAssignments += lic.assignments.length;
+          totalLicenses += lic.totalQuantity;
+        } else {
+          totalLicenses += lic.totalQuantity;
+          activeAssignments += lic.assignments.length;
+          monthlyCost += lic.totalQuantity * lic.costPerLicense;
+          costPerLicense = lic.costPerLicense;
+        }
       }
 
       const availableLicenses = Math.max(0, totalLicenses - activeAssignments);
       const unusedLicenses = availableLicenses;
-      const utilizationRate = totalLicenses > 0 
-        ? Number(((activeAssignments / totalLicenses) * 100).toFixed(1)) 
-        : 0;
+      const utilizationRate = sw.consumptionType === 'TOKEN_BASED' && allocatedTokens > 0
+        ? Number(((usedTokens / allocatedTokens) * 100).toFixed(1))
+        : (totalLicenses > 0 
+          ? Number(((activeAssignments / totalLicenses) * 100).toFixed(1)) 
+          : 0);
+
+      const unusedMonthlyCost = sw.consumptionType === 'TOKEN_BASED' && allocatedTokens > 0
+        ? Math.max(0, allocatedTokens - usedTokens) * tokenUnitCost
+        : unusedLicenses * costPerLicense;
 
       return {
         id: sw.id,
@@ -76,17 +95,21 @@ export async function GET(req: NextRequest) {
         version: sw.version,
         website: sw.website,
         status: sw.status,
+        consumptionType: sw.consumptionType,
         vendor: sw.vendor,
         totalLicenses,
         activeAssignments,
         availableLicenses,
         unusedLicenses,
+        allocatedTokens,
+        usedTokens,
+        tokenUnitCost,
         utilizationRate,
         costPerLicense,
         monthlyCost,
         annualCost: monthlyCost * 12,
-        unusedMonthlyCost: unusedLicenses * costPerLicense,
-        potentialAnnualSaving: unusedLicenses * costPerLicense * 12,
+        unusedMonthlyCost,
+        potentialAnnualSaving: unusedMonthlyCost * 12,
         licenses: sw.licenses,
         createdAt: sw.createdAt,
       };

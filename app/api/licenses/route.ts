@@ -34,20 +34,41 @@ export async function GET(req: NextRequest) {
     });
 
     const enriched = licenses.map((lic) => {
+      const isToken = lic.consumptionType === 'TOKEN_BASED';
+      const allocatedTokens = lic.allocatedTokens || 0;
+      const usedTokens = lic.usedTokens || 0;
+      const remainingTokens = Math.max(0, allocatedTokens - usedTokens);
+      const tokenUnitCost = lic.tokenUnitCost || 0;
+
       const assignedQuantity = lic.assignments.length;
       const availableQuantity = Math.max(0, lic.totalQuantity - assignedQuantity);
       const unusedQuantity = availableQuantity;
-      const utilizationRate = lic.totalQuantity > 0 
-        ? Number(((assignedQuantity / lic.totalQuantity) * 100).toFixed(1)) 
-        : 0;
-      const monthlyExpenditure = lic.totalQuantity * lic.costPerLicense;
-      const unusedMonthlyCost = unusedQuantity * lic.costPerLicense;
+      
+      const utilizationRate = isToken && allocatedTokens > 0
+        ? Number(((usedTokens / allocatedTokens) * 100).toFixed(1))
+        : (lic.totalQuantity > 0 
+          ? Number(((assignedQuantity / lic.totalQuantity) * 100).toFixed(1)) 
+          : 0);
+
+      const monthlyExpenditure = isToken
+        ? (allocatedTokens * tokenUnitCost || lic.totalQuantity * lic.costPerLicense)
+        : (lic.totalQuantity * lic.costPerLicense);
+
+      const unusedMonthlyCost = isToken
+        ? remainingTokens * tokenUnitCost
+        : unusedQuantity * lic.costPerLicense;
+
       const potentialAnnualSaving = unusedMonthlyCost * 12;
 
       return {
         id: lic.id,
         licenseKey: lic.licenseKey,
         licenseType: lic.licenseType,
+        consumptionType: lic.consumptionType,
+        allocatedTokens,
+        usedTokens,
+        remainingTokens,
+        tokenUnitCost,
         totalQuantity: lic.totalQuantity,
         assignedQuantity,
         availableQuantity,
@@ -56,6 +77,7 @@ export async function GET(req: NextRequest) {
         costPerLicense: lic.costPerLicense,
         billingFrequency: lic.billingFrequency,
         monthlyExpenditure,
+        annualExpenditure: monthlyExpenditure * 12,
         unusedMonthlyCost,
         potentialAnnualSaving,
         purchaseDate: lic.purchaseDate,

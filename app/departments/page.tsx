@@ -23,6 +23,7 @@ export default function DepartmentsPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -87,6 +88,27 @@ export default function DepartmentsPage() {
         </div>
 
         <div className="flex items-center gap-2.5">
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setViewMode('monthly')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${
+                viewMode === 'monthly' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('yearly')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${
+                viewMode === 'yearly' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Yearly
+            </button>
+          </div>
+
           <button
             onClick={fetchDepartments}
             className="px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5 shadow-sm transition"
@@ -161,12 +183,20 @@ export default function DepartmentsPage() {
               {/* Spend vs Budget */}
               <div className="mt-4 space-y-2">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-medium">Actual Monthly Spend:</span>
-                  <span className="font-bold text-slate-900">{formatINR(dept.actualSpendMonthly)}</span>
+                  <span className="text-slate-500 font-medium">
+                    {viewMode === 'yearly' ? 'Actual Annual Spend:' : 'Actual Monthly Spend:'}
+                  </span>
+                  <span className="font-bold text-slate-900">
+                    {formatINR(viewMode === 'yearly' ? dept.actualSpendMonthly * 12 : dept.actualSpendMonthly)}
+                  </span>
                 </div>
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-medium">Monthly IT Budget:</span>
-                  <span className="font-semibold text-slate-600">{formatINR(dept.budgetMonthly)}</span>
+                  <span className="text-slate-500 font-medium">
+                    {viewMode === 'yearly' ? 'Annual IT Budget:' : 'Monthly IT Budget:'}
+                  </span>
+                  <span className="font-semibold text-slate-600">
+                    {formatINR(viewMode === 'yearly' ? dept.budgetMonthly * 12 : dept.budgetMonthly)}
+                  </span>
                 </div>
 
                 {/* Progress bar */}

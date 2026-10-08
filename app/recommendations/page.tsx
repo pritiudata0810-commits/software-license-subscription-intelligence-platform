@@ -22,6 +22,7 @@ export default function RecommendationsPage() {
   const [loading, setLoading] = useState(true);
   const [runningEngine, setRunningEngine] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
+  const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
 
@@ -134,21 +135,23 @@ export default function RecommendationsPage() {
 
       {/* TOP ROW: Pastel KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        {/* Card 1: Pastel Mint (Monthly Savings) */}
+        {/* Card 1: Pastel Mint (Monthly / Yearly Savings) */}
         <div className="p-6 rounded-[28px] bg-[#D7EFEA] flex flex-col justify-between min-h-[140px]">
           <span className="text-xs font-bold uppercase tracking-wider text-slate-600">
-            Monthly Savings Potential
+            {viewMode === 'yearly' ? 'Annual Recovery Potential' : 'Monthly Savings Potential'}
           </span>
           <div className="mt-2 flex items-baseline justify-between">
             <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              {formatINR(totalMonthlySavings)}
+              {formatINR(viewMode === 'yearly' ? totalMonthlySavings * 12 : totalMonthlySavings)}
             </span>
             <span className="text-xs font-bold text-teal-800 bg-white/70 px-2.5 py-1 rounded-full">
-              per month
+              {viewMode === 'yearly' ? 'per year' : 'per month'}
             </span>
           </div>
           <span className="text-[11px] text-slate-500 font-medium mt-1">
-            ₹{(totalMonthlySavings * 12).toLocaleString('en-IN')} annual recovery
+            {viewMode === 'yearly'
+              ? `${formatINR(totalMonthlySavings)}/mo immediate recovery`
+              : `${formatINR(totalMonthlySavings * 12)} annual recovery`}
           </span>
         </div>
 
@@ -189,48 +192,71 @@ export default function RecommendationsPage() {
         </div>
       </div>
 
-      {/* Filter Tabs */}
-      <div className="flex items-center gap-2 p-1.5 rounded-full bg-white border border-slate-100 shadow-xs text-xs w-fit">
-        <button
-          onClick={() => setFilterStatus('ALL')}
-          className={`px-4 py-2 rounded-full font-semibold transition ${
-            filterStatus === 'ALL'
-              ? 'bg-[#0F172A] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-          }`}
-        >
-          All ({recommendations.length})
-        </button>
-        <button
-          onClick={() => setFilterStatus('NEW')}
-          className={`px-4 py-2 rounded-full font-semibold transition ${
-            filterStatus === 'NEW'
-              ? 'bg-[#0F172A] text-white shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-          }`}
-        >
-          New ({recommendations.filter((r) => r.status === 'NEW').length})
-        </button>
-        <button
-          onClick={() => setFilterStatus('ACCEPTED')}
-          className={`px-4 py-2 rounded-full font-semibold transition ${
-            filterStatus === 'ACCEPTED'
-              ? 'bg-emerald-600 text-white shadow-xs'
-              : 'text-emerald-700 hover:bg-emerald-50'
-          }`}
-        >
-          Accepted ({recommendations.filter((r) => r.status === 'ACCEPTED').length})
-        </button>
-        <button
-          onClick={() => setFilterStatus('DISMISSED')}
-          className={`px-4 py-2 rounded-full font-semibold transition ${
-            filterStatus === 'DISMISSED'
-              ? 'bg-slate-700 text-white shadow-xs'
-              : 'text-slate-500 hover:bg-slate-100'
-          }`}
-        >
-          Dismissed
-        </button>
+      {/* Filter Tabs & Period Toggle */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <div className="flex items-center gap-2 p-1.5 rounded-full bg-white border border-slate-100 shadow-xs text-xs w-fit">
+          <button
+            onClick={() => setFilterStatus('ALL')}
+            className={`px-4 py-2 rounded-full font-semibold transition ${
+              filterStatus === 'ALL'
+                ? 'bg-[#0F172A] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            All ({recommendations.length})
+          </button>
+          <button
+            onClick={() => setFilterStatus('NEW')}
+            className={`px-4 py-2 rounded-full font-semibold transition ${
+              filterStatus === 'NEW'
+                ? 'bg-[#0F172A] text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            New ({recommendations.filter((r) => r.status === 'NEW').length})
+          </button>
+          <button
+            onClick={() => setFilterStatus('ACCEPTED')}
+            className={`px-4 py-2 rounded-full font-semibold transition ${
+              filterStatus === 'ACCEPTED'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-emerald-700 hover:bg-emerald-50'
+            }`}
+          >
+            Accepted ({recommendations.filter((r) => r.status === 'ACCEPTED').length})
+          </button>
+          <button
+            onClick={() => setFilterStatus('DISMISSED')}
+            className={`px-4 py-2 rounded-full font-semibold transition ${
+              filterStatus === 'DISMISSED'
+                ? 'bg-slate-400 text-white shadow-xs'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+            }`}
+          >
+            Dismissed ({recommendations.filter((r) => r.status === 'DISMISSED').length})
+          </button>
+        </div>
+
+        <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+          <button
+            type="button"
+            onClick={() => setViewMode('monthly')}
+            className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${
+              viewMode === 'monthly' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('yearly')}
+            className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${
+              viewMode === 'yearly' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Yearly
+          </button>
+        </div>
       </div>
 
       {/* Recommendations Cards Feed */}
@@ -270,10 +296,14 @@ export default function RecommendationsPage() {
                 {rec.estimatedMonthlySavings > 0 && (
                   <div className="text-left md:text-right">
                     <div className="text-base font-extrabold text-emerald-600">
-                      +{formatINR(rec.estimatedMonthlySavings)}/mo
+                      {viewMode === 'yearly'
+                        ? `+${formatINR(rec.estimatedAnnualSavings)}/yr`
+                        : `+${formatINR(rec.estimatedMonthlySavings)}/mo`}
                     </div>
                     <div className="text-[10px] text-slate-400">
-                      +{formatINR(rec.estimatedAnnualSavings)} / year
+                      {viewMode === 'yearly'
+                        ? `+${formatINR(rec.estimatedMonthlySavings)} / month`
+                        : `+${formatINR(rec.estimatedAnnualSavings)} / year`}
                     </div>
                   </div>
                 )}

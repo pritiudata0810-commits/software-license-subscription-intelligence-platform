@@ -40,6 +40,13 @@ enum LicenseType {
   PER_CORE
 }
 
+enum ConsumptionType {
+  SEAT_BASED
+  USAGE_BASED
+  TOKEN_BASED
+  SUBSCRIPTION_BASED
+}
+
 enum BillingFrequency {
   MONTHLY
   ANNUAL
@@ -212,6 +219,7 @@ model Software {
   version         String?
   website         String?
   status          SoftwareStatus   @default(ACTIVE)
+  consumptionType ConsumptionType  @default(SEAT_BASED)
   
   vendorId        String
   vendor          Vendor           @relation(fields: [vendorId], references: [id], onDelete: Cascade)
@@ -240,9 +248,15 @@ model License {
   
   licenseKey       String?
   licenseType      LicenseType      @default(PER_USER)
+  consumptionType  ConsumptionType  @default(SEAT_BASED)
   totalQuantity    Int              @default(1)
   costPerLicense   Float            @default(0) // In INR (₹) per month
   billingFrequency BillingFrequency @default(MONTHLY)
+  
+  // Token consumption fields (for TOKEN_BASED software/licenses)
+  allocatedTokens  Float?           @default(0)
+  usedTokens       Float?           @default(0)
+  tokenUnitCost    Float?           @default(0) // In INR (₹) per token
   
   purchaseDate     DateTime         @default(now())
   startDate        DateTime         @default(now())
@@ -300,6 +314,8 @@ model UsageRecord {
   lastActiveDate    DateTime          @default(now())
   loginCount        Int               @default(0)
   hoursUsed         Float             @default(0)
+  tokensAllocated   Float?            @default(0) // Allocated tokens for employee (TOKEN_BASED)
+  tokensUsed        Float?            @default(0) // Consumed tokens by employee (TOKEN_BASED)
   utilizationStatus UtilizationStatus @default(MODERATE)
   
   recordedAt        DateTime          @default(now())
@@ -383,9 +399,16 @@ model CostRecord {
   department    Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
   
   month         Int         // 1 to 12
-  year          Int         // e.g. 2026
+  year          Int         // e.g. 2024, 2025, 2026
   allocatedCost Float       @default(0)
   wastedCost    Float       @default(0)
+  
+  // Yearly Investment & Recovery Intelligence fields
+  investment      Float?    @default(0) // Total software/license investment incurred
+  realizedValue   Float?    @default(0) // Measurable value realized through usage, avoided waste, optimization
+  unrecoveredCost Float?    @default(0) // Investment - Realized Value
+  recoveryRate    Float?    @default(0) // (Realized Value / Investment) * 100
+  
   calculatedAt  DateTime    @default(now())
 
   @@index([softwareId])

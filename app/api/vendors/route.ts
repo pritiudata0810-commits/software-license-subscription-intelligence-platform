@@ -25,8 +25,12 @@ export async function GET(req: NextRequest) {
       let totalSpendMonthly = 0;
       for (const sw of v.software) {
         for (const lic of sw.licenses) {
-          totalLicenses += lic.totalQuantity;
-          totalSpendMonthly += lic.totalQuantity * lic.costPerLicense;
+          if (lic.consumptionType === 'TOKEN_BASED') {
+            totalSpendMonthly += lic.allocatedTokens ? (lic.allocatedTokens * (lic.tokenUnitCost || 0)) : (lic.totalQuantity * lic.costPerLicense);
+          } else {
+            totalLicenses += lic.totalQuantity;
+            totalSpendMonthly += lic.totalQuantity * lic.costPerLicense;
+          }
         }
       }
 

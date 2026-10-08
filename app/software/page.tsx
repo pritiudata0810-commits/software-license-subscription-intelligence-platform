@@ -30,6 +30,7 @@ export default function SoftwarePage() {
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -207,17 +208,40 @@ export default function SoftwarePage() {
           />
         </form>
 
-        <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto">
-          <Filter className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value === 'All Categories' ? '' : e.target.value)}
-            className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
-          >
-            {categories.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
+        <div className="flex items-center gap-2.5 w-full md:w-auto overflow-x-auto justify-between md:justify-end">
+          <div className="flex items-center bg-slate-100 p-0.5 rounded-xl border border-slate-200">
+            <button
+              type="button"
+              onClick={() => setViewMode('monthly')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${
+                viewMode === 'monthly' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Monthly
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('yearly')}
+              className={`px-3 py-1 text-xs font-semibold rounded-lg transition ${
+                viewMode === 'yearly' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              Yearly
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Filter className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value === 'All Categories' ? '' : e.target.value)}
+              className="px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+            >
+              {categories.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -229,67 +253,102 @@ export default function SoftwarePage() {
               <tr>
                 <th className="py-3.5 px-4">Software Name</th>
                 <th className="py-3.5 px-4">Vendor & Category</th>
-                <th className="py-3.5 px-4">Seat Allocation</th>
+                <th className="py-3.5 px-4">Seat / Token Allocation</th>
                 <th className="py-3.5 px-4">Utilization</th>
-                <th className="py-3.5 px-4">Monthly Cost</th>
-                <th className="py-3.5 px-4">Idle Waste</th>
+                <th className="py-3.5 px-4">{viewMode === 'yearly' ? 'Yearly Cost' : 'Monthly Cost'}</th>
+                <th className="py-3.5 px-4">{viewMode === 'yearly' ? 'Annual Unrecovered Cost' : 'Idle Waste'}</th>
                 <th className="py-3.5 px-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {softwareList.length > 0 ? (
-                softwareList.map((sw) => (
-                  <tr key={sw.id} className="hover:bg-slate-50/70 transition">
-                    <td className="py-3 px-4">
-                      <div className="font-bold text-slate-900">{sw.name}</div>
-                      <div className="text-[11px] text-slate-400">v{sw.version || '1.0'}</div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="font-semibold text-slate-800 flex items-center gap-1">
-                        <Building2 className="w-3 h-3 text-slate-400" />
-                        <span>{sw.vendor?.name || 'Unknown Vendor'}</span>
-                      </div>
-                      <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium">
-                        {sw.category}
-                      </span>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="font-bold text-slate-900">
-                        {sw.activeAssignments} / {sw.totalLicenses} Seats
-                      </div>
-                      <div className="text-[10px] text-slate-500">
-                        {sw.availableLicenses} available ({sw.unusedLicenses} unused)
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
-                        <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
-                          <div
-                            className={`h-full rounded-full ${
-                              sw.utilizationRate >= 75
-                                ? 'bg-emerald-500'
-                                : sw.utilizationRate >= 50
-                                ? 'bg-blue-600'
-                                : 'bg-rose-500'
-                            }`}
-                            style={{ width: `${Math.min(100, sw.utilizationRate)}%` }}
-                          />
+                softwareList.map((sw) => {
+                  const isToken = sw.consumptionType === 'TOKEN_BASED';
+                  const displayCost = viewMode === 'yearly' 
+                    ? (sw.annualCost || sw.monthlyCost * 12) 
+                    : sw.monthlyCost;
+                  const displayWaste = viewMode === 'yearly'
+                    ? (sw.potentialAnnualSaving || sw.unusedMonthlyCost * 12)
+                    : sw.unusedMonthlyCost;
+
+                  return (
+                    <tr key={sw.id} className="hover:bg-slate-50/70 transition">
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-1.5">
+                          <span className="font-bold text-slate-900">{sw.name}</span>
+                          {isToken && (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-[#E3DCFD] text-purple-800 border border-purple-200 uppercase tracking-wider">
+                              Token
+                            </span>
+                          )}
                         </div>
-                        <span className="font-bold text-slate-800">{sw.utilizationRate}%</span>
-                      </div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className="font-bold text-slate-900">{formatINR(sw.monthlyCost)}/mo</div>
-                      <div className="text-[10px] text-slate-400">@ {formatINR(sw.costPerLicense)}/seat</div>
-                    </td>
-                    <td className="py-3 px-4">
-                      <div className={`font-bold ${sw.unusedMonthlyCost > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
-                        {formatINR(sw.unusedMonthlyCost)}/mo
-                      </div>
-                      {sw.unusedMonthlyCost > 0 && (
-                        <div className="text-[10px] text-slate-400">Save {formatINR(sw.potentialAnnualSaving)}/yr</div>
-                      )}
-                    </td>
+                        <div className="text-[11px] text-slate-400">v{sw.version || '1.0'}</div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="font-semibold text-slate-800 flex items-center gap-1">
+                          <Building2 className="w-3 h-3 text-slate-400" />
+                          <span>{sw.vendor?.name || 'Unknown Vendor'}</span>
+                        </div>
+                        <span className="inline-block mt-0.5 px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 text-[10px] font-medium">
+                          {sw.category}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        {isToken ? (
+                          <div>
+                            <div className="font-bold text-slate-900">
+                              {(sw.allocatedTokens ? (sw.allocatedTokens / 1_000_000).toFixed(1) + 'M' : '50.0M')} Tokens
+                            </div>
+                            <div className="text-[10px] text-purple-700 font-semibold">
+                              {(sw.usedTokens ? (sw.usedTokens / 1_000_000).toFixed(1) + 'M' : '38.5M')} used ({Math.max(0, 100 - sw.utilizationRate).toFixed(1)}% idle)
+                            </div>
+                          </div>
+                        ) : (
+                          <div>
+                            <div className="font-bold text-slate-900">
+                              {sw.activeAssignments} / {sw.totalLicenses} Seats
+                            </div>
+                            <div className="text-[10px] text-slate-500">
+                              {sw.availableLicenses} available ({sw.unusedLicenses} unused)
+                            </div>
+                          </div>
+                        )}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 h-2 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full ${
+                                sw.utilizationRate >= 75
+                                  ? 'bg-emerald-500'
+                                  : sw.utilizationRate >= 50
+                                  ? 'bg-blue-600'
+                                  : 'bg-rose-500'
+                              }`}
+                              style={{ width: `${Math.min(100, sw.utilizationRate)}%` }}
+                            />
+                          </div>
+                          <span className="font-bold text-slate-800">{sw.utilizationRate}%</span>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="font-bold text-slate-900">{formatINR(displayCost)}{viewMode === 'yearly' ? '/yr' : '/mo'}</div>
+                        <div className="text-[10px] text-slate-400">
+                          {isToken 
+                            ? `@ ₹${sw.tokenUnitCost || 0.002}/token` 
+                            : `@ ${formatINR(viewMode === 'yearly' ? sw.costPerLicense * 12 : sw.costPerLicense)}/seat`}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className={`font-bold ${displayWaste > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                          {formatINR(displayWaste)}{viewMode === 'yearly' ? '/yr' : '/mo'}
+                        </div>
+                        {displayWaste > 0 && (
+                          <div className="text-[10px] text-slate-400">
+                            {isToken ? 'Unused token quota' : (viewMode === 'yearly' ? 'Capital unrecovered' : `Save ${formatINR(sw.potentialAnnualSaving)}/yr`)}
+                          </div>
+                        )}
+                      </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
                         {sw.website && (
@@ -315,7 +374,8 @@ export default function SoftwarePage() {
                       </div>
                     </td>
                   </tr>
-                ))
+                );
+              })
               ) : (
                 <tr>
                   <td colSpan={7} className="py-10 text-center text-slate-400">
