@@ -40,6 +40,7 @@ export default function LoginPage() {
       setLoading(false);
 
       if (res.success) {
+        router.refresh();
         router.push('/dashboard');
       } else {
         setError(res.error || 'Authentication failed. Please verify your credentials.');

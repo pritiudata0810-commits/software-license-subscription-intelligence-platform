@@ -34,11 +34,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const refreshUser = async () => {
     try {
-      const res = await fetch('/api/auth/me');
-      const data = await res.json();
-      if (data.success && data.user) {
-        setUser(data.user);
-      } else {
+      const res = await fetch('/api/auth/me', { credentials: 'include' });
+      if (!res.ok) {
+        setUser(null);
+        return;
+      }
+      const text = await res.text();
+      try {
+        const data = JSON.parse(text);
+        if (data.success && data.user) {
+          setUser(data.user);
+        } else {
+          setUser(null);
+        }
+      } catch {
         setUser(null);
       }
     } catch (err) {
@@ -55,17 +64,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, password: string = 'Password@123') => {
     try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
-      const data = await res.json();
-      if (data.success && data.user) {
+      const makeRequest = async () => {
+        return fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ email: email.trim(), password }),
+        });
+      };
+
+      let res = await makeRequest();
+      let text = await res.text();
+      let data: any = null;
+
+      try {
+        data = JSON.parse(text);
+      } catch (parseErr) {
+        // If server was recompiling or initializing on cold start, retry once
+        await new Promise((r) => setTimeout(r, 600));
+        res = await makeRequest();
+        text = await res.text();
+        try {
+          data = JSON.parse(text);
+        } catch {
+          return { success: false, error: 'Authentication service warming up. Please try again.' };
+        }
+      }
+
+      if (data && data.success && data.user) {
         setUser(data.user);
         return { success: true };
       }
-      return { success: false, error: data.error || 'Authentication failed' };
+      return { success: false, error: data?.error || 'Authentication failed' };
     } catch (err: any) {
       return { success: false, error: err.message || 'Login error' };
     }
@@ -73,7 +103,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await fetch('/api/auth/logout', { method: 'POST' });
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
     } finally {
       setUser(null);
       router.push('/login');

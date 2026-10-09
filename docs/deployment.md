@@ -36,8 +36,8 @@ Set these environment variables in your Vercel Project Settings (`Settings -> En
 
 | Variable | Description | Example / Target Value |
 |---|---|---|
-| `DATABASE_URL` | Neon PostgreSQL pooled connection string | `postgresql://neondb_owner:***@ep-ancient-queen-av0uzfd4-pooler.c-11.us-east-1.aws.neon.tech/neondb?sslmode=require&schema=fep_license_platform` |
-| `DIRECT_URL` | Neon PostgreSQL unpooled direct URL | `postgresql://neondb_owner:***@ep-ancient-queen-av0uzfd4.c-11.us-east-1.aws.neon.tech/neondb?sslmode=require&schema=fep_license_platform` |
+| `DATABASE_URL` | Aiven PostgreSQL connection string | `postgres://avnadmin:***@pg-6da4774-pritiudata0810-462c.g.aivencloud.com:28369/defaultdb?sslmode=require` |
+| `DIRECT_URL` | Aiven PostgreSQL direct connection string | `postgres://avnadmin:***@pg-6da4774-pritiudata0810-462c.g.aivencloud.com:28369/defaultdb?sslmode=require` |
 | `AUTH_SECRET` | 32+ byte cryptographic secret for JWT signing | `fep-software-license-intelligence-secure-jwt-secret-2026-prod` |
 | `NEXT_PUBLIC_APP_URL` | Public production deployment domain | `https://software-license-subscription-intelligence.vercel.app` |
 | `NODE_ENV` | Target environment | `production` |

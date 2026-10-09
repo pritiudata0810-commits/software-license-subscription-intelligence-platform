@@ -3,16 +3,22 @@ import { clearAuthCookie, getUserFromRequest } from '@/lib/auth';
 import { recordAuditLog } from '@/lib/audit';
 import { AuditAction } from '@prisma/client';
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(req: NextRequest) {
   const user = getUserFromRequest(req);
   if (user) {
-    await recordAuditLog({
-      userId: user.userId,
-      action: AuditAction.LOGOUT,
-      entity: 'User',
-      entityId: user.userId,
-      details: { email: user.email },
-    });
+    try {
+      await recordAuditLog({
+        userId: user.userId,
+        action: AuditAction.LOGOUT,
+        entity: 'User',
+        entityId: user.userId,
+        details: { email: user.email },
+      });
+    } catch (auditErr) {
+      console.warn('Audit log write on logout skipped:', auditErr);
+    }
   }
 
   const response = NextResponse.json({ success: true, message: 'Logged out successfully' });

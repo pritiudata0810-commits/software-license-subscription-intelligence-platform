@@ -13,6 +13,13 @@ async function runTests() {
     console.log(`${mark} | ${test} ${details ? '(' + details + ')' : ''}`);
   }
 
+  // Warmup server routes
+  console.log('Warming up server routes...');
+  try {
+    await fetch(`${BASE_URL}/api/auth/me`);
+  } catch {}
+  await new Promise((r) => setTimeout(r, 1500));
+
   // 1. Invalid Login Test
   try {
     const res = await fetch(`${BASE_URL}/api/auth/login`, {
@@ -20,7 +27,9 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'admin@enterprise.com', password: 'InvalidPassword999' }),
     });
-    const data = await res.json();
+    const text = await res.text();
+    let data: any = {};
+    try { data = JSON.parse(text); } catch {}
     record('Auth: Reject invalid password', res.status === 401 && !data.success, `HTTP ${res.status}`);
   } catch (e: any) {
     record('Auth: Reject invalid password', false, e.message);
